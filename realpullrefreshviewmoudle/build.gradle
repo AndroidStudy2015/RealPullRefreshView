@@ -95,12 +95,12 @@ bintray {
     user = properties.getProperty("bintray.user")
     key = properties.getProperty("bintray.apikey")
     pkg {
-        repo = 'MyLibrary'//自己创建的仓库名字
-        name = 'RealPullRefreshView'//上传到JCenter的名字,最终引用的名字
+        repo = 'TheLibrary'//自己创建的仓库名字
+        name = 'realpullrefreshview'//上传到JCenter的名字,最终引用的名字
         websiteUrl = siteUrl
         vcsUrl = gitUrl
         licenses = ['MIT']//不能随便写，只能是仓库创建时选择的license type
-        userOrg = 'HappyCJX2080' //自己创建的organization名称
+        userOrg = 'happycjx2080' //自己创建的organization名称
         publish = true // 是否是公开项目，公开别人可以引用
 
         version {
