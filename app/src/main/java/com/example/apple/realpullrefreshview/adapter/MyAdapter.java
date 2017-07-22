@@ -85,7 +85,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private void bindBodyView(BodyViewHolder holder, final int position) {
 
         Body body = bodyList.get(position);
-        holder.tvBody.setText(body.getName()+"     hello      "+body.getAge());
+        holder.tvBody.setText(body.getName()+"     hello1     "+body.getAge());
 
 
         holder.tvBody.setOnClickListener(new View.OnClickListener() {
