@@ -7,14 +7,14 @@ import android.support.v7.widget.LinearLayoutManager;
 
 import com.example.apple.realpullrefreshview.adapter.MyAdapter;
 import com.example.apple.realpullrefreshview.bean.Body;
-import com.example.realpullrefreshviewmoudle.view.RealPullRefreshView;
+import com.example.realpullrefreshviewmoudle.view.PullRefreshRecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private RealPullRefreshView mRealPullRefreshView;
+    private PullRefreshRecyclerView mPullRefreshRecyclerView;
 
     private ArrayList<Body> mBodies;
 
@@ -30,22 +30,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initData();
-        mRealPullRefreshView = (RealPullRefreshView) findViewById(R.id.real_pull_refresh_view);
+        mPullRefreshRecyclerView = (PullRefreshRecyclerView) findViewById(R.id.real_pull_refresh_view);
 
 
         mLayoutManager = new LinearLayoutManager(this);
         mMyAdapter = new MyAdapter(this, mBodies);
-        mRealPullRefreshView.setLayoutManager(mLayoutManager);
-        mRealPullRefreshView.setAdapter(mMyAdapter);
+        mPullRefreshRecyclerView.setLayoutManager(mLayoutManager);
+        mPullRefreshRecyclerView.setAdapter(mMyAdapter);
 
-        mRealPullRefreshView.setOnPullListener(new RealPullRefreshView.OnPullListener() {
+        mPullRefreshRecyclerView.setOnPullListener(new PullRefreshRecyclerView.OnPullListener() {
             @Override
             public void onRefresh() {
                 mHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         mBodies.add(0, new Body("新数据" + i++, 100));
-                        mRealPullRefreshView.refreshFinish();
+                        mPullRefreshRecyclerView.refreshFinish();
                     }
                 }, 3000);
             }
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                         mBodies.addAll(mMore);
-                        mRealPullRefreshView.loadMroeFinish();
+                        mPullRefreshRecyclerView.loadMroeFinish();
                     }
                 }, 1500);
             }

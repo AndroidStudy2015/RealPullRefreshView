@@ -5,11 +5,11 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
-import com.example.realpullrefreshviewmoudle.view.RealPullRefreshScrollView;
+import com.example.realpullrefreshviewmoudle.view.PullRefreshScrollView;
 
 public class ScrollActivity extends AppCompatActivity {
 
-    private RealPullRefreshScrollView mRealPullRefreshScrollView;
+    private PullRefreshScrollView mPullRefreshScrollView;
     private TextView mTv;
     private Handler mHandler;
 
@@ -19,19 +19,39 @@ public class ScrollActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scroll);
 
         mHandler = new Handler();
-        mRealPullRefreshScrollView = (RealPullRefreshScrollView) findViewById(R.id.real_pull_refresh_scroll_view);
-
+        mPullRefreshScrollView = (PullRefreshScrollView) findViewById(R.id.real_pull_refresh_scroll_view);
+//        mPullRefreshScrollView.setScrollViewRefreshStateCall(new PullRefreshScrollView.ScrollViewRefreshStateCall() {
+//            @Override
+//            public void onPullDownRefreshState(int scrollY, int headviewHeight, int deltaY) {
+//
+//            }
+//
+//            @Override
+//            public void onReleaseRefreshState(int scrollY, int deltaY) {
+//
+//            }
+//
+//            @Override
+//            public void onRefreshingState() {
+//
+//            }
+//
+//            @Override
+//            public void onDefaultState() {
+//
+//            }
+//        });
         mTv = (TextView) findViewById(R.id.tv111);
-        mRealPullRefreshScrollView.setOnPullListener(new RealPullRefreshScrollView.OnPullListener() {
+        mPullRefreshScrollView.setOnPullListener(new PullRefreshScrollView.OnPullListener() {
             @Override
             public void onRefresh() {
                 mHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         mTv.setText("fsjoofjgofosojgosrterp");
-                        mRealPullRefreshScrollView.refreshFinish();
+                        mPullRefreshScrollView.refreshFinish();
                     }
-                },3000);
+                }, 3000);
 
             }
 

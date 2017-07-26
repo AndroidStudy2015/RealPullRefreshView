@@ -1,34 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.example.realpullrefreshviewmoudle.view.RealPullRefreshScrollView
+<com.example.realpullrefreshviewmoudle.view.PullRefreshScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
 
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/real_pull_refresh_scroll_view"
-
+    app:content_view="@layout/content"
+    app:scroll_refresh_header_view="@layout/content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorAccent"
-    tools:context="com.example.apple.realpullrefreshview.ScrollActivity">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <TextView
-            android:id="@+id/tv111"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="这个为光电开关麦克风让他个人"/>
-
-        <TextView
-            android:id="@+id/tv11qqq1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="这个为光电开关麦克风让他个人"/>
+    android:background="#f0f098"
+    tools:context="com.example.apple.realpullrefreshview.ScrollActivity"/>
 
 
-    </LinearLayout>
 
 
-</com.example.realpullrefreshviewmoudle.view.RealPullRefreshScrollView>
+

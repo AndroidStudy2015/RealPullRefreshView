@@ -17,7 +17,7 @@ import android.widget.Scroller;
 import android.widget.Toast;
 
 import com.example.realpullrefreshviewmoudle.R;
-import com.example.realpullrefreshviewmoudle.show.ImplOnPullShowScrollViewListener;
+import com.example.realpullrefreshviewmoudle.show.ImplScrollViewRefreshStateCall;
 
 import static android.content.ContentValues.TAG;
 
@@ -26,7 +26,7 @@ import static android.content.ContentValues.TAG;
  * 下拉刷新
  */
 
-public class RealPullRefreshScrollView extends LinearLayout {
+public class PullRefreshScrollView extends LinearLayout {
 
 
     private int mTouchSlop;
@@ -40,11 +40,11 @@ public class RealPullRefreshScrollView extends LinearLayout {
 
     private Scroller mScroller;
     private VelocityTracker mVelocityTracker;
+    private int contentViewId;
+    private View contentView;
+    private ScrollViewRefreshStateCall mScrollViewRefreshStateCall;
 
 
-    public NestedScrollView getNestedScrollView() {
-        return mNestedScrollView;
-    }
 
     private NestedScrollView mNestedScrollView;
 
@@ -74,26 +74,29 @@ public class RealPullRefreshScrollView extends LinearLayout {
         return mRefreshHeaderView;
     }
 
-    public void setOnPullShowViewListener(OnPullShowViewListener onPullShowViewListener) {
-        mOnPullShowViewListener = onPullShowViewListener;
+    public void setScrollViewRefreshStateCall(ScrollViewRefreshStateCall scrollViewRefreshStateCall) {
+        mScrollViewRefreshStateCall = scrollViewRefreshStateCall;
     }
 
-    private OnPullShowViewListener mOnPullShowViewListener;
 
     public void setOnPullListener(OnPullListener onPullListener) {
         mOnPullListener = onPullListener;
     }
 
-    public RealPullRefreshScrollView(Context context) {
+    public PullRefreshScrollView(Context context) {
         super(context);
 
         initView(context);
 
     }
 
+    public NestedScrollView getNestedScrollView() {
+        return mNestedScrollView;
+    }
+
     boolean flag = false;
 
-    public RealPullRefreshScrollView(Context context, @Nullable AttributeSet attrs) {
+    public PullRefreshScrollView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
         initAttrs(context, attrs);
@@ -113,13 +116,11 @@ public class RealPullRefreshScrollView extends LinearLayout {
     }
 
 
-    public RealPullRefreshScrollView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public PullRefreshScrollView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
         initAttrs(context, attrs);
-      /*  if (refreshHeadviewId != 0) {
-            initView(context);
-        }*/
+
 
         if (flag) {
             initView(context);
@@ -128,11 +129,12 @@ public class RealPullRefreshScrollView extends LinearLayout {
 
     private void initAttrs(Context context, AttributeSet attrs) {
 
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RealPullRefreshView);
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.PullScrollRefreshView);
 
         try {
 
-            refreshHeadviewId = typedArray.getResourceId(R.styleable.RealPullRefreshView_refresh_header_view, 0);
+            refreshHeadviewId = typedArray.getResourceId(R.styleable.PullScrollRefreshView_scroll_refresh_header_view, 0);
+            contentViewId = typedArray.getResourceId(R.styleable.PullScrollRefreshView_content_view, 0);
 
             flag = true;
 
@@ -162,11 +164,15 @@ public class RealPullRefreshScrollView extends LinearLayout {
         if (refreshHeadviewId == 0) {
             mRefreshHeaderView = LayoutInflater.from(context).inflate(R.layout.headerview_moren, this, false);
 
-            //      这里我提供了一个默认的显示效果，如果用户不使用mRealPullRefreshView.setOnPullShowViewListener的话，会默认使用这个
-//      用户可以实现OnPullShowViewListener接口，去实现自己想要的显示效果
-            mOnPullShowViewListener = new ImplOnPullShowScrollViewListener(this);
+            //      这里我提供了一个默认的显示效果，如果用户不自己设置的话，会默认使用这个
+//           用户可以实现ScrollViewRefreshStateCall接口，去实现自己想要的显示效果，
+//          注意要先增加自己的头布局，对应于你自己的头布局操作动画
+            mScrollViewRefreshStateCall = new ImplScrollViewRefreshStateCall(this);
         } else {
             mRefreshHeaderView = LayoutInflater.from(context).inflate(refreshHeadviewId, this, false);
+            if(mScrollViewRefreshStateCall==null){
+                throw new RuntimeException("由于您使用了自定义的头布局，你要使用setScrollViewRefreshStateCall()方法，自定义一个该布局的动画效果，看参照ImplScrollViewRefreshStateCall");
+            }
         }
 
         addView(mRefreshHeaderView);
@@ -177,7 +183,6 @@ public class RealPullRefreshScrollView extends LinearLayout {
         postDelayed(new Runnable() {
             @Override
             public void run() {
-                Log.e("q11", refreshHeadviewHeight + "qqqqqqqqqq      " + mRefreshHeaderView.getHeight());
                 rfreshHeaderWidth = mRefreshHeaderView.getWidth();
                 refreshHeadviewHeight = mRefreshHeaderView.getHeight();
 
@@ -189,10 +194,16 @@ public class RealPullRefreshScrollView extends LinearLayout {
         }, 10);
 
 
-//      添加RecyclerView
+//      添加ScrollerView
         mNestedScrollView = new NestedScrollView(context);
 
+        if (contentViewId != 0) {
+            contentView = LayoutInflater.from(context).inflate(contentViewId, mNestedScrollView, false);
+            mNestedScrollView.addView(contentView,LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        }
         addView(mNestedScrollView, LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+
+
 
 
     }
@@ -200,18 +211,20 @@ public class RealPullRefreshScrollView extends LinearLayout {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+//        下面是讨巧的方法，但是可能要渲染两次
+//        View thirdView = getChildAt(3);
+//        if (thirdView!=null){
+//            throw  new RuntimeException("ScrollView内部只能有一个直接子View");
+//        }
+//
+////       得到第三个子View，这个view其实要放在mNestedScrollView内显示
+//        View contentView = getChildAt(2);
+////       从父布局中先移除这个view
+//        ((ViewGroup) contentView.getParent()).removeView(contentView);
+////        再将它显示到mNestedScrollView中
+//        mNestedScrollView.addView(contentView);
 
-        View thirdView = getChildAt(3);
-        if (thirdView!=null){
-            throw  new RuntimeException("ScrollView内部只能有一个View");
-        }
 
-//       得到第三个子View，这个view其实要放在mNestedScrollView内显示
-        View contentView = getChildAt(2);
-//       从父布局中先移除这个view
-        ((ViewGroup) contentView.getParent()).removeView(contentView);
-//        再将它显示到mNestedScrollView中
-        mNestedScrollView.addView(contentView, LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
     }
 
     @Override
@@ -303,15 +316,15 @@ public class RealPullRefreshScrollView extends LinearLayout {
                 if (getScrollY() > -refreshHeadviewHeight && STATE != REFRESHING) {//头布局显示不全时，为下拉刷新PULL_DOWN_REFRESH状态
                     STATE = PULL_DOWN_REFRESH;
 
-                    if (mOnPullShowViewListener != null) {
-                        mOnPullShowViewListener.onPullDownRefreshState(getScrollY(), refreshHeadviewHeight, deltaY);
+                    if (mScrollViewRefreshStateCall != null) {
+                        mScrollViewRefreshStateCall.onPullDownRefreshState(getScrollY(), refreshHeadviewHeight, deltaY);
                     }
 
                 }
                 if (getScrollY() < -refreshHeadviewHeight && STATE != REFRESHING) {//头布局完全显示时，为释放刷新RELEASE_REFRESH状态
                     STATE = RELEASE_REFRESH;
-                    if (mOnPullShowViewListener != null) {
-                        mOnPullShowViewListener.onReleaseRefreshState(getScrollY(), deltaY);
+                    if (mScrollViewRefreshStateCall != null) {
+                        mScrollViewRefreshStateCall.onReleaseRefreshState(getScrollY(), deltaY);
                     }
 
                 }
@@ -333,8 +346,8 @@ public class RealPullRefreshScrollView extends LinearLayout {
                         smoothScrollBy(0, -refreshHeadviewHeight - scrollY);
 
 
-                        if (mOnPullShowViewListener != null) {
-                            mOnPullShowViewListener.onRefreshingState();
+                        if (mScrollViewRefreshStateCall != null) {
+                            mScrollViewRefreshStateCall.onRefreshingState();
                         }
 
 
@@ -369,8 +382,8 @@ public class RealPullRefreshScrollView extends LinearLayout {
     public void refreshFinish() {
         smoothScrollBy(0, 0 - getScrollY());
         STATE = DEFAULT;
-        if (mOnPullShowViewListener != null) {
-            mOnPullShowViewListener.onDefaultState();
+        if (mScrollViewRefreshStateCall != null) {
+            mScrollViewRefreshStateCall.onDefaultState();
         }
 
         Toast.makeText(getContext(), "刷新成功!", Toast.LENGTH_SHORT).show();
@@ -428,7 +441,7 @@ public class RealPullRefreshScrollView extends LinearLayout {
      * 回调接口，可以通过下面的回调，自定义各种状态下的显示效果
      * 可以根据下拉距离scrollY设计动画效果
      */
-    public interface OnPullShowViewListener {
+    public interface ScrollViewRefreshStateCall {
 
         /**
          * 当处于下拉刷新时，头布局显示效果

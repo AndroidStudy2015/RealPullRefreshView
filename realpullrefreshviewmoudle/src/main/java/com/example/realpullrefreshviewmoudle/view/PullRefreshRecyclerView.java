@@ -19,7 +19,7 @@ import android.widget.Scroller;
 import android.widget.Toast;
 
 import com.example.realpullrefreshviewmoudle.R;
-import com.example.realpullrefreshviewmoudle.show.ImplOnPullShowViewListener;
+import com.example.realpullrefreshviewmoudle.show.ImplRecyclerViewRefreshStateCall;
 
 import static android.content.ContentValues.TAG;
 
@@ -28,7 +28,7 @@ import static android.content.ContentValues.TAG;
  * 下拉刷新
  */
 
-public class RealPullRefreshView extends LinearLayout {
+public class PullRefreshRecyclerView extends LinearLayout {
 
 
     private int mTouchSlop;
@@ -45,6 +45,7 @@ public class RealPullRefreshView extends LinearLayout {
 
 
     private RecyclerView.Adapter mAdapter;
+    private RecyclerViewRefreshStateCall mRecyclerViewRefreshStateCall;
 
     public RecyclerView getRecyclerView() {
         return mRecyclerView;
@@ -89,17 +90,16 @@ public class RealPullRefreshView extends LinearLayout {
         return mRefreshHeaderView;
     }
 
-    public void setOnPullShowViewListener(OnPullShowViewListener onPullShowViewListener) {
-        mOnPullShowViewListener = onPullShowViewListener;
+    public void setRecyclerViewRefreshStateCall(RecyclerViewRefreshStateCall recyclerViewRefreshStateCall) {
+        mRecyclerViewRefreshStateCall = recyclerViewRefreshStateCall;
     }
 
-    private OnPullShowViewListener mOnPullShowViewListener;
 
     public void setOnPullListener(OnPullListener onPullListener) {
         mOnPullListener = onPullListener;
     }
 
-    public RealPullRefreshView(Context context) {
+    public PullRefreshRecyclerView(Context context) {
         super(context);
 
         initView(context);
@@ -107,7 +107,7 @@ public class RealPullRefreshView extends LinearLayout {
     }
 
     boolean flag=false;
-    public RealPullRefreshView(Context context, @Nullable AttributeSet attrs) {
+    public PullRefreshRecyclerView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
         initAttrs(context, attrs);
@@ -127,7 +127,7 @@ public class RealPullRefreshView extends LinearLayout {
     }
 
 
-    public RealPullRefreshView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public PullRefreshRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
         initAttrs(context, attrs);
@@ -142,11 +142,11 @@ public class RealPullRefreshView extends LinearLayout {
 
     private void initAttrs(Context context, AttributeSet attrs) {
 
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RealPullRefreshView);
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.PullRefreshRecyclerView);
 
         try {
 
-            refreshHeadviewId = typedArray.getResourceId(R.styleable.RealPullRefreshView_refresh_header_view, 0);
+            refreshHeadviewId = typedArray.getResourceId(R.styleable.PullRefreshRecyclerView_refresh_header_view, 0);
 
         flag=true;
 
@@ -178,9 +178,12 @@ public class RealPullRefreshView extends LinearLayout {
 
             //      这里我提供了一个默认的显示效果，如果用户不使用mRealPullRefreshView.setOnPullShowViewListener的话，会默认使用这个
 //      用户可以实现OnPullShowViewListener接口，去实现自己想要的显示效果
-            mOnPullShowViewListener =new ImplOnPullShowViewListener(this);}
+            mRecyclerViewRefreshStateCall =new ImplRecyclerViewRefreshStateCall(this);}
         else {
         mRefreshHeaderView = LayoutInflater.from(context).inflate(refreshHeadviewId, this, false);
+            if(mRecyclerViewRefreshStateCall==null){
+                throw new RuntimeException("由于您使用了自定义的头布局，你要使用setRecyclerViewRefreshStateCall()方法，自定义一个该布局的动画效果,可参照ImplRecyclerViewRefreshStateCall");
+            }
          }
 
     addView(mRefreshHeaderView);
@@ -191,7 +194,6 @@ public class RealPullRefreshView extends LinearLayout {
     postDelayed(new Runnable() {
         @Override
         public void run () {
-            Log.e("q11", refreshHeadviewHeight + "qqqqqqqqqq      " + mRefreshHeaderView.getHeight());
             rfreshHeaderWidth = mRefreshHeaderView.getWidth();
             refreshHeadviewHeight = mRefreshHeaderView.getHeight();
 
@@ -354,15 +356,15 @@ public class RealPullRefreshView extends LinearLayout {
                 if (getScrollY() > -refreshHeadviewHeight && STATE != REFRESHING) {//头布局显示不全时，为下拉刷新PULL_DOWN_REFRESH状态
                     STATE = PULL_DOWN_REFRESH;
 
-                    if (mOnPullShowViewListener != null) {
-                        mOnPullShowViewListener.onPullDownRefreshState(getScrollY(), refreshHeadviewHeight, deltaY);
+                    if (mRecyclerViewRefreshStateCall != null) {
+                        mRecyclerViewRefreshStateCall.onPullDownRefreshState(getScrollY(), refreshHeadviewHeight, deltaY);
                     }
 
                 }
                 if (getScrollY() < -refreshHeadviewHeight && STATE != REFRESHING) {//头布局完全显示时，为释放刷新RELEASE_REFRESH状态
                     STATE = RELEASE_REFRESH;
-                    if (mOnPullShowViewListener != null) {
-                        mOnPullShowViewListener.onReleaseRefreshState(getScrollY(), deltaY);
+                    if (mRecyclerViewRefreshStateCall != null) {
+                        mRecyclerViewRefreshStateCall.onReleaseRefreshState(getScrollY(), deltaY);
                     }
 
                 }
@@ -384,8 +386,8 @@ public class RealPullRefreshView extends LinearLayout {
                         smoothScrollBy(0, -refreshHeadviewHeight - scrollY);
 
 
-                        if (mOnPullShowViewListener != null) {
-                            mOnPullShowViewListener.onRefreshingState();
+                        if (mRecyclerViewRefreshStateCall != null) {
+                            mRecyclerViewRefreshStateCall.onRefreshingState();
                         }
 
 
@@ -421,8 +423,8 @@ public class RealPullRefreshView extends LinearLayout {
         smoothScrollBy(0, 0 - getScrollY());
         getRecyclerView().getAdapter().notifyDataSetChanged();
         STATE = DEFAULT;
-        if (mOnPullShowViewListener != null) {
-            mOnPullShowViewListener.onDefaultState();
+        if (mRecyclerViewRefreshStateCall != null) {
+            mRecyclerViewRefreshStateCall.onDefaultState();
         }
 
         Toast.makeText(getContext(), "刷新成功!", Toast.LENGTH_SHORT).show();
@@ -492,7 +494,7 @@ public interface OnPullListener {
  * 回调接口，可以通过下面的回调，自定义各种状态下的显示效果
  * 可以根据下拉距离scrollY设计动画效果
  */
-public interface OnPullShowViewListener {
+public interface RecyclerViewRefreshStateCall {
 
     /**
      * 当处于下拉刷新时，头布局显示效果

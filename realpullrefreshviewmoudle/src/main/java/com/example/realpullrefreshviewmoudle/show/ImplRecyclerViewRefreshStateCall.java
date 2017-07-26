@@ -9,13 +9,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.realpullrefreshviewmoudle.R;
-import com.example.realpullrefreshviewmoudle.view.RealPullRefreshView;
+import com.example.realpullrefreshviewmoudle.view.PullRefreshRecyclerView;
 
 /**
  * Created by apple on 2017/7/9.
  */
 
-public class ImplOnPullShowViewListener implements RealPullRefreshView.OnPullShowViewListener {
+public class ImplRecyclerViewRefreshStateCall implements PullRefreshRecyclerView.RecyclerViewRefreshStateCall {
 
     private TextView mTv;
     private ImageView mIv;
@@ -23,8 +23,8 @@ public class ImplOnPullShowViewListener implements RealPullRefreshView.OnPullSho
     View mHeaderView;
 
 
-    public ImplOnPullShowViewListener(RealPullRefreshView realPullRefreshView) {
-        mHeaderView = realPullRefreshView.getRefreshHeaderView();
+    public ImplRecyclerViewRefreshStateCall(PullRefreshRecyclerView pullRefreshRecyclerView) {
+        mHeaderView = pullRefreshRecyclerView.getRefreshHeaderView();
         mTv = (TextView) mHeaderView.findViewById(R.id.tv);
         mIv = (ImageView) mHeaderView.findViewById(R.id.iv);
         mAni = ObjectAnimator.ofFloat(mIv, "rotation", 0, 360).setDuration(300);
