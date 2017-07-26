@@ -1,6 +1,7 @@
 package com.example.apple.realpullrefreshview.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.apple.realpullrefreshview.R;
+import com.example.apple.realpullrefreshview.ScrollActivity;
 import com.example.apple.realpullrefreshview.bean.Body;
 
 import java.util.List;
@@ -91,6 +93,7 @@ public class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         holder.tvBody.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                context.startActivity(new Intent(context, ScrollActivity.class));
                 Toast.makeText(context, position + "", Toast.LENGTH_SHORT).show();
 
             }
